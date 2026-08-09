@@ -1,0 +1,126 @@
+--- a/py/services/download_manager.py
++++ b/py/services/download_manager.py
+@@ -728,6 +728,42 @@
+ 
+         return os.path.abspath(os.path.join(save_dir, file_name))
+ 
++    async def _complete_restored_queue_item(
++        self,
++        download_id: str,
++        record: Dict,
++        *,
++        status: str,
++        error: Optional[str] = None,
++    ) -> None:
++        """Move a restored aria2 task from the persistent queue to history."""
++        info = self._active_downloads.get(download_id, {})
++        file_path = record.get("save_path") or record.get("file_path")
++        bytes_downloaded = info.get("bytes_downloaded", 0) or 0
++        total_bytes = info.get("total_bytes")
++
++        if status == "completed" and file_path and os.path.isfile(file_path):
++            completed_size = os.path.getsize(file_path)
++            bytes_downloaded = completed_size
++            total_bytes = completed_size
++
++        try:
++            queue_service = await DownloadQueueService.get_instance()
++            await queue_service.complete_download(
++                download_id=download_id,
++                status=status,
++                error=error,
++                file_path=file_path,
++                bytes_downloaded=bytes_downloaded,
++                total_bytes=total_bytes,
++            )
++        except Exception:
++            logger.warning(
++                "Failed to complete restored queue item for %s",
++                download_id,
++                exc_info=True,
++            )
++
+     async def _resume_restored_aria2_download(self, download_id: str, record: Dict) -> Dict:
+         try:
+             if download_id in self._active_downloads:
+@@ -815,6 +851,18 @@
+                 if self._active_downloads[download_id].get("transfer_backend") == "aria2":
+                     await self._persist_aria2_state(download_id)
+ 
++            terminal_status = (
++                result.get("status", "completed")
++                if result.get("success")
++                else "failed"
++            )
++            await self._complete_restored_queue_item(
++                download_id,
++                record,
++                status=terminal_status,
++                error=result.get("error") if not result.get("success") else None,
++            )
++
+             return result
+         except asyncio.CancelledError:
+             if download_id in self._active_downloads:
+@@ -822,6 +870,11 @@
+                 self._active_downloads[download_id]["bytes_per_second"] = 0.0
+                 if self._active_downloads[download_id].get("transfer_backend") == "aria2":
+                     await self._persist_aria2_state(download_id)
++            await self._complete_restored_queue_item(
++                download_id,
++                record,
++                status="canceled",
++            )
+             logger.info(f"Download cancelled for task {download_id}")
+             raise
+         except Exception as exc:
+@@ -834,6 +887,12 @@
+                 self._active_downloads[download_id]["bytes_per_second"] = 0.0
+                 if self._active_downloads[download_id].get("transfer_backend") == "aria2":
+                     await self._persist_aria2_state(download_id)
++            await self._complete_restored_queue_item(
++                download_id,
++                record,
++                status="failed",
++                error=str(exc),
++            )
+             return {"success": False, "error": str(exc)}
+         finally:
+             asyncio.create_task(self._cleanup_download_record(download_id))
+@@ -2089,20 +2148,22 @@
+                     break
+ 
+                 last_error = result
+-                # For aria2: if the .aria2 control file is missing, aria2 considers
+-                # the download complete.  A transient RPC failure may have made us
+-                # think the download failed even though the file is fully on disk.
+-                # Keep the file so a retry can find it already complete.
+-                if (
+-                    transfer_backend == "aria2"
+-                    and os.path.exists(save_path)
+-                    and not os.path.exists(f"{save_path}.aria2")
+-                ):
+-                    logger.warning(
+-                        "aria2 download reported failure but .aria2 file is absent "
+-                        "for %s — the file is likely complete.  Preserving it for retry.",
+-                        save_path,
+-                    )
++                # aria2 needs both the target file and its .aria2 control file to
++                # resume after a process/container restart.  Never delete the
++                # target on an aria2 failure; the control file distinguishes a
++                # partial transfer from a likely-complete file.
++                if transfer_backend == "aria2" and os.path.exists(save_path):
++                    if os.path.exists(f"{save_path}.aria2"):
++                        logger.info(
++                            "Preserving aria2 partial target for retry: %s",
++                            save_path,
++                        )
++                    else:
++                        logger.warning(
++                            "aria2 download reported failure but .aria2 file is absent "
++                            "for %s — the file is likely complete.  Preserving it for retry.",
++                            save_path,
++                        )
+                 elif os.path.exists(save_path):
+                     try:
+                         os.remove(save_path)

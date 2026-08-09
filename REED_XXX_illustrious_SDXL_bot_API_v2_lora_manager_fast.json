@@ -1,0 +1,148 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "reedXXXIllustrious_v150.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "16": {
+    "inputs": {
+      "stop_at_clip_layer": -2,
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "CLIPSetLastLayer",
+    "_meta": {
+      "title": "CLIP Set Last Layer"
+    }
+  },
+  "23": {
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "text": "",
+      "clip": [
+        "16",
+        0
+      ],
+      "loras": {
+        "__value__": [
+          {
+            "name": "characters/vtubers/nana7mi_3outfits__civitai_m2403879_v2702866.safetensors",
+            "strength": "0.8",
+            "active": false,
+            "expanded": false,
+            "clipStrength": "0.8"
+          }
+        ]
+      }
+    },
+    "class_type": "Lora Loader (LoraManager)",
+    "_meta": {
+      "title": "Dynamic LoRA Stack"
+    }
+  },
+  "5": {
+    "inputs": {
+      "text": "masterpiece, best quality, amazing quality, absurdres, newest, 1girl, solo, looking at viewer, detailed eyes, clean lineart, polished illustration",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Positive Prompt"
+    }
+  },
+  "6": {
+    "inputs": {
+      "text": "lowres, early, monochrome, greyscale, worst quality, bad_quality, normal quality, bad anatomy, anatomical nonsense, bad hands, bad feet, extra digit, extra toes, missing fingers, ugly, deformed anatomy, bad proportions, jpeg artifacts, censored, logo, text, signature, watermark, blurry, sketch, unfinished, messy",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "7": {
+    "inputs": {
+      "width": 1024,
+      "height": 1536,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Base Latent"
+    }
+  },
+  "13": {
+    "inputs": {
+      "seed": 123456789,
+      "steps": 28,
+      "cfg": 5,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "23",
+        0
+      ],
+      "positive": [
+        "5",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "latent_image": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler Fast"
+    }
+  },
+  "14": {
+    "inputs": {
+      "samples": [
+        "13",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Final Image"
+    }
+  },
+  "15": {
+    "inputs": {
+      "filename_prefix": "REED_illustrious_bot_lora_manager_fast",
+      "images": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Image Output"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+services:
+  comfyui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: animagine-comfyui
+    restart: unless-stopped
+
+    # Pin the permanent primary/control node to the built-in A3000 by stable
+    # GPU UUID. Do not use `all`: the external RTX 3090 may be removed and is
+    # managed as an optional gateway worker.
+    devices:
+      - nvidia.com/gpu=GPU-6c864b0e-10b3-4d5f-e611-0ec5d942cec9
+
+    ports:
+      - "18188:8188"
+
+    volumes:
+      # --- Model directories (persistent on host) ---
+      # Main checkpoint models (Animagine XL 3.1)
+      - /mnt/storage/ai_models/comfyui/checkpoints:/app/ComfyUI/models/checkpoints
+      # LoRA models (Illustrious characters, styles, and clothing)
+      - /mnt/storage/ai_models/comfyui/loras:/app/ComfyUI/models/loras
+      # ControlNet models (OpenPose SDXL)
+      - /mnt/storage/ai_models/comfyui/controlnet:/app/ComfyUI/models/controlnet
+      # IP-Adapter models
+      - /mnt/storage/ai_models/comfyui/ipadapter:/app/ComfyUI/models/ipadapter
+      # CLIP Vision models (required by IP-Adapter)
+      - /mnt/storage/ai_models/comfyui/clip_vision:/app/ComfyUI/models/clip_vision
+      # VAE models (optional, SDXL includes built-in VAE)
+      - /mnt/storage/ai_models/comfyui/vae:/app/ComfyUI/models/vae
+      # Upscale models (for hires workflows)
+      - /mnt/storage/ai_models/comfyui/upscale_models:/app/ComfyUI/models/upscale_models
+      # --- Output & Input ---
+      - /mnt/storage/ai_models/comfyui/output:/app/ComfyUI/output
+      - /mnt/storage/ai_models/comfyui/input:/app/ComfyUI/input
+      # --- Custom nodes data persistence ---
+      - /mnt/storage/ai_models/comfyui/custom_nodes_data:/app/ComfyUI/custom_nodes_data
+      # LoRA Manager settings, download queue/history, backups and cache
+      - /mnt/storage/ai_models/comfyui/lora_manager_data:/root/.config/ComfyUI-LoRA-Manager
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=GPU-6c864b0e-10b3-4d5f-e611-0ec5d942cec9
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      # Read from this project's .env; the value is not baked into the image.
+      - CIVITAI_API_KEY=${CIVITAI_API_KEY}
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

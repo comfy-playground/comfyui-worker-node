@@ -1,0 +1,55 @@
+{
+  "loras": {
+    "characters/vtubers/nana7mi_3outfits__civitai_m2403879_v2702866.safetensors": {
+      "aliases": [
+        "Nana7mi",
+        "七海",
+        "七海Nana7mi",
+        "地雷系七海"
+      ],
+      "description": "七海 Nana7mi，包含地雷系、睡衣和街头服三套造型",
+      "default_strength": 0.8,
+      "default_clip_strength": 0.8
+    },
+    "characters/vtubers/yuuki_sakuna_2costumes__civitai_m1146561_v1853274.safetensors": {
+      "aliases": [
+        "Yuuki Sakuna",
+        "结城昨奈",
+        "結城さくな"
+      ],
+      "description": "结城昨奈角色 LoRA，两套服装",
+      "default_strength": 0.8,
+      "default_clip_strength": 0.8
+    },
+    "clothing/lolita/pink_lace_tiered_lolita_dress__civitai_m1621696_v1835345.safetensors": {
+      "aliases": [
+        "粉色洛丽塔裙",
+        "粉色蕾丝洛丽塔",
+        "pink lace lolita dress"
+      ],
+      "description": "粉色蕾丝多层洛丽塔连衣裙服装 LoRA",
+      "default_strength": 0.65,
+      "default_clip_strength": 0.65
+    },
+    "clothing/legwear/thick_white_thighhighs__civitai_m2091048_v2365861.safetensors": {
+      "aliases": [
+        "白丝",
+        "白色过膝袜",
+        "thick white thighhighs"
+      ],
+      "description": "厚白色过膝袜服饰 LoRA",
+      "default_strength": 0.6,
+      "default_clip_strength": 0.6
+    },
+    "clothing/maid/pastel_lace_maid__civitai_m2219210_v2498398.safetensors": {
+      "aliases": [
+        "粉彩蕾丝女仆装",
+        "可爱女仆装",
+        "pastel lace maid"
+      ],
+      "description": "粉彩蕾丝女仆装服饰 LoRA",
+      "default_strength": 0.65,
+      "default_clip_strength": 0.65
+    }
+  }
+}
