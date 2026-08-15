@@ -1,8 +1,9 @@
 # ComfyUI Gateway Worker Image
 
 Reproducible ComfyUI image and API workflow collection for the local image
-gateway. The image runs the primary A3000M worker and can be retagged and
-reused by the optional RTX 3090 worker without rebuilding.
+gateway. The primary Compose deployment uses NVIDIA device index `0` by
+default; a verified image can be retagged and reused by additional workers
+without rebuilding.
 
 This repository builds worker software only. Model weights, LoRAs, input,
 output, and LoRA Manager state remain on mounted host storage.
@@ -24,7 +25,9 @@ Details are in [docs/architecture.md](docs/architecture.md) and
 
 ```text
 Dockerfile                                      Reproducible ComfyUI image
-docker-compose.yml                              Primary A3000M worker
+docker-compose.yml                              Primary worker deployment
+compose.storage.yaml                            Model and persistent-data mounts
+.env.example                                    Local storage and optional Civitai token template
 custom_nodes/ComfyUI-Gateway-Batch/             Gateway-owned batch nodes
 patches/comfyui-lora-manager-aria2-resume-queue.patch
 tests/                                          CPU-only custom-node tests
@@ -36,9 +39,20 @@ tests/                                          CPU-only custom-node tests
 Prerequisites:
 
 - Docker Engine with NVIDIA Container Toolkit.
-- The model directories referenced by `docker-compose.yml`.
+- One base-model set from [docs/model-setup.md](docs/model-setup.md).
 - A `.env` file containing `CIVITAI_API_KEY` when LoRA Manager downloads are
   required. Do not commit this file.
+
+Create local storage configuration first:
+
+```sh
+cp .env.example .env
+```
+
+The primary Compose file automatically imports `compose.storage.yaml`. Set its
+two path variables in `.env`; no model-volume list needs editing. The minimal
+model guide explains which checkpoint or Anima files are required for a first
+image and which categories can wait for LoRA Manager or a future workflow.
 
 Build and replace only the primary worker:
 
@@ -49,7 +63,9 @@ docker compose ps
 ```
 
 The primary service exposes ComfyUI at `http://127.0.0.1:18188`. Its Compose
-file intentionally pins the A3000M GPU UUID; do not replace it with `all`.
+file selects NVIDIA device index `0` by default. On a multi-GPU host, set
+`COMFYUI_GPU_DEVICE` in `.env` to the intended device index or NVIDIA device
+identifier. Do not use `all` for a worker that must retain one GPU.
 
 ## Validate A Build
 
@@ -105,21 +121,16 @@ Release a verified local image with a fixed tag before deploying it elsewhere:
 docker image tag animagine-comfyui:latest animagine-comfyui:gateway-batch-YYYYMMDD
 ```
 
-The RTX 3090 worker is a separate Compose deployment on this host. It must use
-the fixed release tag with `pull_policy: never`, not rebuild its own image.
-The exact deployment and rollback procedure is in
+An additional worker should use the fixed release tag with `pull_policy: never`,
+not rebuild its own image. The exact deployment and rollback procedure is in
 [docs/operations.md](docs/operations.md).
 
 Never delete the previous image before the replacement has passed startup,
 capability, and real-workflow validation. Keep a dedicated rollback tag such
-as `animagine-comfyui:pre-3090-batch-YYYYMMDD`.
+as `animagine-comfyui:pre-secondary-batch-YYYYMMDD`.
 
 ## Contribution And GitHub Submission
 
 Read [AGENTS.md](AGENTS.md) before editing Docker, workflow, or plugin files.
 The pull-request checklist is in
 [.github/pull_request_template.md](.github/pull_request_template.md).
-
-This checkout currently has no configured Git remote. Add the intended GitHub
-remote only after the repository owner chooses its URL and visibility; do not
-infer or publish to a remote.

@@ -4,17 +4,24 @@
 
 | Worker | Compose file | GPU | HTTP endpoint | Image policy |
 | --- | --- | --- | --- | --- |
-| Primary | `docker-compose.yml` in this repository | A3000M UUID pinned in Compose | `127.0.0.1:18188` | Build locally from this repository. |
-| Optional worker | `/opt/docker/comfyui-workers/3090/compose.yaml` | RTX 3090 UUID pinned in its Compose | `host.docker.internal:18201` from gateway | Reuse a verified fixed local tag; `pull_policy: never`. |
+| Primary | `docker-compose.yml` plus `compose.storage.yaml` in this repository | `COMFYUI_GPU_DEVICE`, default `0` | `127.0.0.1:18188` | Build locally from this repository. |
+| Additional worker | Deployment-specific Compose file outside this repository | Selected by that deployment | Configured worker endpoint | Reuse a verified fixed local tag; `pull_policy: never`. |
 
-The 3090 manifest intentionally lives outside this repository because it has
-worker-specific volumes, ports, and GPU ownership. Do not replace its named
-volumes or GPU UUID when changing only the image.
+An additional-worker manifest stays outside this repository because it has
+deployment-specific volumes, ports, GPU selection, and gateway configuration.
+Do not replace its named volumes or device selection when changing only the
+image.
+
+Before building the primary worker, copy `.env.example` to `.env` and follow
+[model-setup.md](model-setup.md). The primary Compose file imports its storage
+extension automatically, so `docker compose` remains the normal command.
+`COMFYUI_GPU_DEVICE=0` selects the first GPU; change it locally only when the
+host needs a different device.
 
 ## Primary Worker Release
 
-Build the A3000M image and retain the previous image before replacing its
-container:
+Build the primary-worker image and retain the previous image before replacing
+its container:
 
 ```sh
 docker image tag animagine-comfyui:latest animagine-comfyui:pre-release-YYYYMMDD
@@ -39,32 +46,30 @@ reuse:
 docker image tag animagine-comfyui:latest animagine-comfyui:gateway-batch-YYYYMMDD
 ```
 
-## Deploy The Same Image To RTX 3090
+## Deploy The Same Image To An Additional Worker
 
-Do not rebuild on the 3090 deployment. First ensure it is idle:
+Do not rebuild on an additional-worker deployment. First ensure it is idle:
 
 ```sh
-docker exec comfyui-gateway-worker-3090 \
+docker exec <secondary-container> \
   curl -fsS http://127.0.0.1:8188/queue
 ```
 
-Tag the existing 3090 image for rollback, update only the `image:` field in
-`/opt/docker/comfyui-workers/3090/compose.yaml` to the verified release tag,
-then recreate the service without build or dependencies:
+Tag the existing image for rollback, update only the `image:` field in the
+additional worker's Compose file to the verified release tag, then recreate
+the service without build or dependencies:
 
 ```sh
-docker image tag <current-3090-image-id> animagine-comfyui:pre-3090-YYYYMMDD
-docker compose -f /opt/docker/comfyui-workers/3090/compose.yaml \
-  up -d --no-deps --force-recreate --no-build worker
+docker image tag <current-secondary-image-id> animagine-comfyui:pre-secondary-YYYYMMDD
+docker compose -f <secondary-compose-file> \
+  up -d --no-deps --force-recreate --no-build <secondary-service>
 ```
 
-Verify the 3090 service and the gateway path:
+Verify the additional worker's service and its configured gateway path:
 
 ```sh
-docker exec comfyui-gateway-worker-3090 \
+docker exec <secondary-container> \
   curl -fsS http://127.0.0.1:8188/object_info/GatewayMultiSeedStochasticSampler
-docker exec comfyui-gateway-ts node -e \
-  "fetch('http://host.docker.internal:18201/system_stats').then(r => { if (!r.ok) process.exit(1) })"
 ```
 
 ## Rollback
@@ -80,12 +85,12 @@ docker image tag animagine-comfyui:pre-release-YYYYMMDD animagine-comfyui:latest
 docker compose up -d --no-deps --force-recreate --no-build comfyui
 ```
 
-For the 3090 worker, change its Compose `image:` back to its saved rollback
-tag and run:
+For an additional worker, change its Compose `image:` back to its saved
+rollback tag and run:
 
 ```sh
-docker compose -f /opt/docker/comfyui-workers/3090/compose.yaml \
-  up -d --no-deps --force-recreate --no-build worker
+docker compose -f <secondary-compose-file> \
+  up -d --no-deps --force-recreate --no-build <secondary-service>
 ```
 
 Then repeat the `/system_stats` check before allowing new work.
@@ -99,7 +104,7 @@ Record these values in the pull request or release note:
 - Unit test result.
 - Batch-size-two prompt ID, elapsed time, output count, and distinct output
   hashes.
-- A3000M and 3090 health and capability responses.
+- Primary and additional-worker health and capability responses.
 
 Never include `CIVITAI_API_KEY`, request bearer tokens, local model paths beyond
 the documented mount roots, or generated image content in a pull request.

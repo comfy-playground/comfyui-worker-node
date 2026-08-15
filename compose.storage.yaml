@@ -1,0 +1,18 @@
+# Storage-only Compose extension for the primary worker.
+#
+# COMFYUI_MODEL_ROOT should contain the normal ComfyUI model folders, for
+# example checkpoints/, diffusion_models/, text_encoders/, loras/, vae/, and
+# optional folders such as controlnet/ and ipadapter/. It is mounted as the
+# complete ComfyUI models tree so new categories do not require Compose edits.
+#
+# COMFYUI_DATA_ROOT holds input/, output/, custom_nodes_data/, and
+# lora_manager_data/. Both variables may point to the same directory.
+services:
+  worker-storage:
+    volumes:
+      # Keep this writable: LoRA Manager downloads into models/loras.
+      - ${COMFYUI_MODEL_ROOT:-/mnt/storage/ai_models/comfyui}:/app/ComfyUI/models
+      - ${COMFYUI_DATA_ROOT:-/mnt/storage/ai_models/comfyui}/output:/app/ComfyUI/output
+      - ${COMFYUI_DATA_ROOT:-/mnt/storage/ai_models/comfyui}/input:/app/ComfyUI/input
+      - ${COMFYUI_DATA_ROOT:-/mnt/storage/ai_models/comfyui}/custom_nodes_data:/app/ComfyUI/custom_nodes_data
+      - ${COMFYUI_DATA_ROOT:-/mnt/storage/ai_models/comfyui}/lora_manager_data:/root/.config/ComfyUI-LoRA-Manager

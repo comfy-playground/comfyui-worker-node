@@ -31,17 +31,18 @@ dependencies after a gateway-plugin change.
 ## Runtime Storage
 
 The image contains code, not weights or user data. The primary Compose service
-mounts these host-owned paths:
+extends `compose.storage.yaml`, which receives two host path variables from
+`.env`:
 
-| Host purpose | Container path |
-| --- | --- |
-| Checkpoints | `/app/ComfyUI/models/checkpoints` |
-| Diffusion models | `/app/ComfyUI/models/diffusion_models` |
-| Text encoders | `/app/ComfyUI/models/text_encoders` |
-| LoRAs | `/app/ComfyUI/models/loras` |
-| VAE, ControlNet, IP-Adapter, CLIP Vision, upscalers | Matching `models/*` directories |
-| Images | `/app/ComfyUI/input` and `/app/ComfyUI/output` |
-| LoRA Manager state | `/root/.config/ComfyUI-LoRA-Manager` |
+| Variable | Owns | Container path |
+| --- | --- | --- |
+| `COMFYUI_MODEL_ROOT` | Entire model tree, including checkpoints, UNETs, text encoders, VAEs, LoRAs, and optional categories. | `/app/ComfyUI/models` |
+| `COMFYUI_DATA_ROOT` | Inputs, outputs, custom-node data, and LoRA Manager state. | ComfyUI input/output and manager-specific paths. |
+
+Both variables may use the same host directory. The model root is writable
+because LoRA Manager downloads into `models/loras`; do not mount it read-only
+on the primary worker. The exact bootstrap model sets and optional categories
+are in [model-setup.md](model-setup.md).
 
 Do not add model weights, outputs, cache directories, or `.env` files to Git.
 
@@ -107,4 +108,4 @@ commit, or the batch plugin:
 4. Run the unit test command from the README.
 5. Run a real batch-size-two Anima `er_sde` request and verify two distinct
    output files.
-6. Reuse the validated tag on the RTX 3090 worker only after step 5 succeeds.
+6. Reuse the validated tag on each additional worker only after step 5 succeeds.
