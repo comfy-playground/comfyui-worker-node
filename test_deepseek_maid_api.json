@@ -1,0 +1,88 @@
+{
+  "prompt": {
+    "1": {
+      "inputs": {
+        "ckpt_name": "reedXXXIllustrious_v150.safetensors"
+      },
+      "class_type": "CheckpointLoaderSimple"
+    },
+    "16": {
+      "inputs": {
+        "stop_at_clip_layer": -2,
+        "clip": ["1", 1]
+      },
+      "class_type": "CLIPSetLastLayer"
+    },
+    "23": {
+      "inputs": {
+        "model": ["1", 0],
+        "text": "",
+        "clip": ["16", 0],
+        "loras": {
+          "__value__": [
+            {
+              "name": "ecosystems/illustrious/deepseek_maid_outfit_illustrious_v10.safetensors",
+              "strength": "0.85",
+              "active": true,
+              "expanded": false,
+              "clipStrength": "1.0"
+            }
+          ]
+        }
+      },
+      "class_type": "Lora Loader (LoraManager)"
+    },
+    "5": {
+      "inputs": {
+        "text": "1girl, solo, deepseek_whale_girl, deepseek_maid_outfit, blue hair, very long hair, wavy hair, gradient blue hair, bangs, ahoge, blue eyes, whale fin ears, blue hair bows, navy blue maid dress, white frilled apron, blue whale emblem, dark blue neck bow, blue gemstone brooch, puff sleeves, gold trim, blue whale tail, starry tail pattern, white thighhighs, looking at viewer, standing, upper body, masterpiece, best quality, ultra-detailed",
+        "clip": ["23", 1]
+      },
+      "class_type": "CLIPTextEncode"
+    },
+    "6": {
+      "inputs": {
+        "text": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+        "clip": ["23", 1]
+      },
+      "class_type": "CLIPTextEncode"
+    },
+    "7": {
+      "inputs": {
+        "width": 1024,
+        "height": 1536,
+        "batch_size": 1
+      },
+      "class_type": "EmptyLatentImage"
+    },
+    "13": {
+      "inputs": {
+        "seed": 123456789,
+        "steps": 28,
+        "cfg": 5,
+        "sampler_name": "euler",
+        "scheduler": "normal",
+        "denoise": 1,
+        "model": ["23", 0],
+        "positive": ["5", 0],
+        "negative": ["6", 0],
+        "latent_image": ["7", 0]
+      },
+      "class_type": "KSampler"
+    },
+    "14": {
+      "inputs": {
+        "samples": ["13", 0],
+        "vae": ["1", 2]
+      },
+      "class_type": "VAEDecode"
+    },
+    "15": {
+      "inputs": {
+        "filename_prefix": "network_test/deepseek_maid_redirect_test",
+        "images": ["14", 0]
+      },
+      "class_type": "SaveImage"
+    }
+  },
+  "client_id": "opencode-deepseek-maid-test"
+}

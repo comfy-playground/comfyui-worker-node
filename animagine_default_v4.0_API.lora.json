@@ -1,0 +1,17 @@
+{
+  "loras": {
+    "characters/vtubers/amamiya_kokoro__civitai_m1486888_v1681889.safetensors": {
+      "aliases": [
+        "Amamiya Kokoro",
+        "天宫心",
+        "天宮こころ"
+      ],
+      "description": "默认关闭的 LoRA 堆识别种子；后续补充 Animagine 生态 LoRA 时应替换或扩充此清单",
+      "default_strength": 0.65,
+      "default_clip_strength": 0.65,
+      "trigger_words": [
+        "AmamiyaKokoroNijisanji"
+      ]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "loras": {
+    "ecosystems/anima/ds_whalemaid.safetensors": {
+      "aliases": [
+        "DeepSeek 女仆鲸娘",
+        "女仆鲸娘",
+        "鲸娘",
+        "ds whalemaid"
+      ],
+      "description": "为 Anima Base v1.0 训练的 DeepSeek 女仆鲸娘 Q 版角色 LoRA；推荐使用 1:1 分辨率和作者原始触发词",
+      "default_strength": 1.0,
+      "default_clip_strength": 1.0,
+      "trigger_words": [
+        "ds_whalemaid",
+        "chibi",
+        "cute",
+        "whale ears",
+        "tail",
+        "blue hair",
+        "long wavy hair",
+        "bob cut",
+        "blue eyes",
+        "maid outfit",
+        "frilly dress",
+        "frills"
+      ]
+    }
+  }
+}

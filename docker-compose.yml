@@ -19,6 +19,10 @@ services:
       # --- Model directories (persistent on host) ---
       # Main checkpoint models (Animagine XL 3.1)
       - /mnt/storage/ai_models/comfyui/checkpoints:/app/ComfyUI/models/checkpoints
+      # Standalone diffusion models (Anima and other UNETLoader workflows)
+      - /mnt/storage/ai_models/comfyui/diffusion_models:/app/ComfyUI/models/diffusion_models
+      # Standalone text encoders used by diffusion-model workflows
+      - /mnt/storage/ai_models/comfyui/text_encoders:/app/ComfyUI/models/text_encoders
       # LoRA models (Illustrious characters, styles, and clothing)
       - /mnt/storage/ai_models/comfyui/loras:/app/ComfyUI/models/loras
       # ControlNet models (OpenPose SDXL)

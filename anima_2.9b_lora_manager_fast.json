@@ -1,0 +1,156 @@
+{
+  "1": {
+    "inputs": {
+      "unet_name": "anima29B_v10.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Anima-2.9B Diffusion Model"
+    }
+  },
+  "2": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Qwen 3 0.6B Text Encoder"
+    }
+  },
+  "3": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Qwen Image VAE"
+    }
+  },
+  "23": {
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "text": "",
+      "clip": [
+        "2",
+        0
+      ],
+      "loras": {
+        "__value__": [
+          {
+            "name": "ecosystems/anima/ds_whalemaid.safetensors",
+            "strength": "1.0",
+            "active": true,
+            "expanded": false,
+            "clipStrength": "1.0"
+          }
+        ]
+      }
+    },
+    "class_type": "Lora Loader (LoraManager)",
+    "_meta": {
+      "title": "Anima Dynamic LoRA Stack"
+    }
+  },
+  "5": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Positive Prompt"
+    }
+  },
+  "6": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "7": {
+    "inputs": {
+      "width": 1024,
+      "height": 1536,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "1024 x 1536 Native Anima Latent"
+    }
+  },
+  "13": {
+    "inputs": {
+      "seed": 123456789,
+      "steps": 28,
+      "cfg": 5.0,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1.0,
+      "model": [
+        "23",
+        0
+      ],
+      "positive": [
+        "5",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "latent_image": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "Euler / Normal / 28 Steps"
+    }
+  },
+  "14": {
+    "inputs": {
+      "samples": [
+        "13",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Native Anima Decode"
+    }
+  },
+  "15": {
+    "inputs": {
+      "filename_prefix": "Anima_2.9B_lora_manager_fast",
+      "images": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Image Output"
+    }
+  }
+}

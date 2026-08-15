@@ -1,0 +1,128 @@
+{
+  "1": {
+    "inputs": {
+      "unet_name": "anima29B_v10.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Anima-2.9B Diffusion Model"
+    }
+  },
+  "2": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Qwen 3 0.6B Text Encoder"
+    }
+  },
+  "3": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Qwen Image VAE"
+    }
+  },
+  "4": {
+    "inputs": {
+      "text": "score_8, score_9, year 2025, highres, absurdres, masterpiece, 1girl, original anime character, silver-haired swordswoman standing beneath a red torii gate at twilight, detailed blue and white kimono armor, wind lifting her long hair and sleeves, holding a glowing katana in a dynamic ready stance, falling cherry blossoms, distant mountains, cinematic composition, dramatic rim lighting, strong linework, intricate background, polished anime illustration",
+      "clip": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Positive Prompt"
+    }
+  },
+  "5": {
+    "inputs": {
+      "text": "worst quality, old, ancient, low quality, score_1, score_2, score_3, blurry, jpeg artifacts, bad anatomy, extra limbs, deformed, watermark, text, signature, bad hands, missing fingers, extra fingers, artist name, scan artifacts",
+      "clip": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "6": {
+    "inputs": {
+      "width": 832,
+      "height": 1216,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "832 x 1216 Latent"
+    }
+  },
+  "7": {
+    "inputs": {
+      "seed": 1056289985061737,
+      "steps": 28,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "sgm_uniform",
+      "denoise": 1.0,
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "4",
+        0
+      ],
+      "negative": [
+        "5",
+        0
+      ],
+      "latent_image": [
+        "6",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "Euler / SGM Uniform / 28 Steps"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "7",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "9": {
+    "inputs": {
+      "filename_prefix": "api-tests/anima29b",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Anima-2.9B Image"
+    }
+  }
+}
