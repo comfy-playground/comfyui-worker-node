@@ -1,0 +1,157 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "ponyDiffusionV6XL_v6StartWithThisOne.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Pony V6 Checkpoint"
+    }
+  },
+  "16": {
+    "inputs": {
+      "clip": [
+        "1",
+        1
+      ],
+      "stop_at_clip_layer": -2
+    },
+    "class_type": "CLIPSetLastLayer",
+    "_meta": {
+      "title": "Pony CLIP Skip 2"
+    }
+  },
+  "23": {
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "text": "",
+      "clip": [
+        "16",
+        0
+      ],
+      "loras": {
+        "__value__": [
+          {
+            "name": "ecosystems/pony/kiyuu_pony.safetensors",
+            "strength": "0.8",
+            "active": true,
+            "expanded": false,
+            "clipStrength": "0.8"
+          }
+        ]
+      }
+    },
+    "class_type": "Lora Loader (LoraManager)",
+    "_meta": {
+      "title": "Kiyuu Pony LoRA"
+    }
+  },
+  "5": {
+    "inputs": {
+      "text": "score_9, score_8_up, score_7_up, source_anime, masterpiece, best quality, amazing quality, 1girl, solo, kiyuu_default, headphones, looking at viewer, detailed eyes, clean lineart, polished illustration",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Positive Prompt"
+    }
+  },
+  "6": {
+    "inputs": {
+      "text": "score_6, score_5, score_4, worst quality, low quality, lowres, bad anatomy, bad hands, bad feet, extra digits, missing fingers, text, watermark, logo, signature, blurry, sketch, monochrome",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "7": {
+    "inputs": {
+      "width": 1024,
+      "height": 1536,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Review Resolution"
+    }
+  },
+  "13": {
+    "inputs": {
+      "seed": 381746291,
+      "steps": 28,
+      "cfg": 5,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "23",
+        0
+      ],
+      "positive": [
+        "5",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "latent_image": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "Pony Euler Review"
+    }
+  },
+  "3": {
+    "inputs": {
+      "vae_name": "sdxl_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Matching SDXL VAE"
+    }
+  },
+  "14": {
+    "inputs": {
+      "samples": [
+        "13",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "Decoded Image"
+    }
+  },
+  "15": {
+    "inputs": {
+      "filename_prefix": "pony_kiyuu_fast",
+      "images": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Review Output"
+    }
+  }
+}

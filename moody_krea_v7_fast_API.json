@@ -1,0 +1,110 @@
+{
+  "1": {
+    "inputs": {
+      "unet_name": "Moody-Krea-Mix-v7_00002__clean_fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": { "title": "Load Moody Krea v7 FP8" }
+  },
+  "2": {
+    "inputs": {
+      "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+      "type": "krea2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": { "title": "Load Krea 2 Text Encoder" }
+  },
+  "3": {
+    "inputs": { "vae_name": "qwen_image_vae.safetensors" },
+    "class_type": "VAELoader",
+    "_meta": { "title": "Load Qwen Image VAE" }
+  },
+  "23": {
+    "inputs": {
+      "model": ["1", 0],
+      "clip": ["2", 0],
+      "text": "",
+      "loras": {
+        "__value__": [
+          { "name": "ecosystems/krea2/Pantyhose.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/glossy_pantyhose_Kera_2_epoch_17.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/neo_tangzhuang-KreaRaw-V2.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/asia_cosplay_krea_2.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/CosplayKrea2_000003500.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/Krea2_Coser_portrait_photography.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/krea2_JPwoman01_v01.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/KoreanWoman_krea2_2_c1-st5000.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/Krea_2_Hayeon.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/zy_2B_K2.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false },
+          { "name": "ecosystems/krea2/EtherialGothicKrea2Raw.safetensors", "strength": "0.8", "clipStrength": "0.8", "active": false, "expanded": false }
+        ]
+      }
+    },
+    "class_type": "Lora Loader (LoraManager)",
+    "_meta": { "title": "Krea 2 Dynamic LoRA Stack" }
+  },
+  "5": {
+    "inputs": {
+      "text": "",
+      "clip": ["23", 1]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": { "title": "Positive Prompt" }
+  },
+  "6": {
+    "inputs": {
+      "text": "",
+      "clip": ["23", 1]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": { "title": "Negative Prompt" }
+  },
+  "7": {
+    "inputs": { "width": 768, "height": 1152, "batch_size": 1 },
+    "class_type": "EmptyLatentImage",
+    "_meta": { "title": "Latent Image" }
+  },
+  "13": {
+    "inputs": {
+      "seed": 0,
+      "steps": 12,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": ["23", 0],
+      "positive": ["5", 0],
+      "negative": ["6", 0],
+      "latent_image": ["7", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": { "title": "Krea 2 Sampler" }
+  },
+  "14": {
+    "inputs": { "samples": ["13", 0], "vae": ["3", 0] },
+    "class_type": "VAEDecode",
+    "_meta": { "title": "Decode Image" }
+  },
+  "15": {
+    "inputs": { "filename_prefix": "Moody-Krea-v7-fast", "images": ["18", 0] },
+    "class_type": "SaveImage",
+    "_meta": { "title": "Save Image" }
+  },
+  "16": {
+    "inputs": { "model_name": "4x_foolhardy_Remacri.pth" },
+    "class_type": "UpscaleModelLoader",
+    "_meta": { "title": "Load Remacri 4x" }
+  },
+  "17": {
+    "inputs": { "upscale_model": ["16", 0], "image": ["14", 0] },
+    "class_type": "ImageUpscaleWithModel",
+    "_meta": { "title": "Remacri 4x Upscale" }
+  },
+  "18": {
+    "inputs": { "upscale_method": "bicubic", "width": 1536, "height": 2304, "crop": "disabled", "image": ["17", 0] },
+    "class_type": "ImageScale",
+    "_meta": { "title": "Compact 2x Output" }
+  }
+}

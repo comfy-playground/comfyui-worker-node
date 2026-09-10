@@ -6,6 +6,21 @@ This repository builds a pinned ComfyUI worker image and stores API workflow
 templates. It does not own gateway queueing, credentials, model downloads, or
 generated outputs.
 
+## AstrBot Protection Rule
+
+- Agents must never modify, copy files into, restart, recreate, update, or
+  otherwise change the `astrbot` container.
+- Agents must never modify `/mnt/storage/astrbot/data/plugins` or any other
+  AstrBot plugin directory directly, including through a container bind mount.
+- Any operation affecting the `astrbot` container or its plugin directories
+  requires the user to perform it manually.
+- Agents must never pull, refresh, or implicitly fetch AstrBot or NapCat
+  images, including via Compose operations. Image pulls for these services are
+  user-operated only.
+- AstrBot plugin changes must be committed and pushed to the plugin's GitHub
+  repository. The user performs the subsequent plugin update through the
+  AstrBot WebUI.
+
 Read [README.md](README.md), [docs/model-setup.md](docs/model-setup.md),
 [docs/architecture.md](docs/architecture.md), and [docs/operations.md](docs/operations.md)
 before changing worker behavior.

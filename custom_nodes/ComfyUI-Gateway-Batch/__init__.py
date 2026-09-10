@@ -1,10 +1,66 @@
 import json
 import re
+import asyncio
+import uuid
 
 import torch
 
 import comfy.sample
 from comfy_extras.nodes_custom_sampler import SamplerCustomAdvanced
+
+# Optional worker-local memory control. The guarded import keeps the custom
+# node usable by the CPU-only unit-test harness and older ComfyUI loaders.
+_memory_operations = {}
+try:
+    from aiohttp import web
+    from server import PromptServer
+    import comfy.model_management
+
+    async def _finish_memory_operation(operation_id, timeout_seconds):
+        deadline = asyncio.get_running_loop().time() + timeout_seconds
+        empty_polls = 0
+        while asyncio.get_running_loop().time() < deadline:
+            if not comfy.model_management.loaded_models():
+                empty_polls += 1
+                if empty_polls >= 3:
+                    _memory_operations[operation_id]["state"] = "succeeded"
+                    return
+            else:
+                empty_polls = 0
+            await asyncio.sleep(0.2)
+        _memory_operations[operation_id]["state"] = "timed_out"
+
+    @PromptServer.instance.routes.get("/gateway-worker/v1/runtime")
+    async def gateway_runtime(_request):
+        return web.json_response({
+            "loaded_models": [type(model).__name__ for model in comfy.model_management.loaded_models()],
+            "memory_operations": _memory_operations,
+        })
+
+    @PromptServer.instance.routes.post("/gateway-worker/v1/memory-operations")
+    async def gateway_memory_operation(request):
+        body = await request.json()
+        mode = body.get("mode", "")
+        if mode not in ("offload_gpu", "release"):
+            return web.json_response({"error": "mode must be offload_gpu or release"}, status=400)
+        operation_id = str(uuid.uuid4())
+        _memory_operations[operation_id] = {"state": "pending", "mode": mode}
+        if mode == "release":
+            PromptServer.instance.prompt_queue.set_flag("free_memory", True)
+        else:
+            PromptServer.instance.prompt_queue.set_flag("unload_models", True)
+        asyncio.create_task(_finish_memory_operation(operation_id, 120.0))
+        return web.json_response({"operation_id": operation_id, "state": "pending"}, status=202)
+
+    @PromptServer.instance.routes.get("/gateway-worker/v1/memory-operations/{operation_id}")
+    async def gateway_memory_status(request):
+        operation_id = request.match_info["operation_id"]
+        operation = _memory_operations.get(operation_id)
+        if operation is None:
+            return web.json_response({"error": "operation not found"}, status=404)
+        return web.json_response({"operation_id": operation_id, **operation})
+except (ImportError, AttributeError):
+    pass
 
 
 MAX_BATCH_SIZE = 16

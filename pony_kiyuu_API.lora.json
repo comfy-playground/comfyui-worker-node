@@ -1,0 +1,24 @@
+{
+  "loras": {
+    "ecosystems/pony/kiyuu_pony.safetensors": {
+      "aliases": [
+        "Kiyuu",
+        "Kiyuu Pony",
+        "希侑",
+        "希侑Kiyuu",
+        "VirtuaReal 希侑"
+      ],
+      "description": "Pony Diffusion V6 XL 生态的 VirtuaReal 希侑角色 LoRA，包含原皮、礼服和框服三套造型；每次生成应只选择一组造型触发词",
+      "default_strength": 0.8,
+      "default_clip_strength": 0.8,
+      "trigger_words": [
+        "kiyuu_default, headphones",
+        "kiyuu_ornate, glasses, twintails, hat",
+        "kiyuu_vogue, shorts, navel"
+      ],
+      "prompt_hints": [
+        "kiyuu_default, headphones"
+      ]
+    }
+  }
+}

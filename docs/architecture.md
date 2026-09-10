@@ -46,6 +46,22 @@ are in [model-setup.md](model-setup.md).
 
 Do not add model weights, outputs, cache directories, or `.env` files to Git.
 
+## Model Compatibility
+
+The gateway may register a complete model variant by its diffusion-model,
+text-encoder, and VAE filenames. A worker can opt into a model with a
+`model_ids` allowlist; requests are admitted only when their workflow loader
+dependencies match one registered model and the selected worker is assigned
+that model. Krea 2 workflows use the `UNETLoader` + `CLIPLoader(type=krea2)` +
+`VAELoader` combination. The first Moody Krea v7 workflow is single-image and
+does not participate in the Anima batch adapters.
+
+Workers also expose an optional `/gateway-worker/v1/memory-operations` control
+surface from the gateway batch node. `offload_gpu` and `release` return an
+operation ID and can be polled until the execution thread confirms that model
+memory has been released. Gateways must detect this capability before using it;
+older workers remain in compatibility mode.
+
 ## Gateway Batch Nodes
 
 `custom_nodes/ComfyUI-Gateway-Batch` contains two ComfyUI nodes.

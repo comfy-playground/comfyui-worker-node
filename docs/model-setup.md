@@ -74,6 +74,59 @@ vae/qwen_image_vae.safetensors
 
 ## Download The Rest Later
 
+### Moody Krea v7 FP8
+
+The Krea 2 workflows use the following matched files. Keep this model
+set on the 3090 worker until its quality and memory envelope are validated:
+
+```text
+diffusion_models/Moody-Krea-Mix-v7_00002__clean_fp8.safetensors
+text_encoders/qwen3vl_4b_fp8_scaled.safetensors
+vae/qwen_image_vae.safetensors
+upscale_models/4x_foolhardy_Remacri.pth
+```
+
+Both templates use 12 steps, CFG 1, Euler / simple, and a batch size of one:
+
+| Template | Generation size | Saved image size |
+| --- | --- | --- |
+| [moody_krea_v7_API.json](../moody_krea_v7_API.json) (default) | 768×1152 | 3072×4608 |
+| [moody_krea_v7_fast_API.json](../moody_krea_v7_fast_API.json) (fast) | 768×1152 | 1536×2304 |
+
+The default template decodes the generated latent and applies Remacri once at
+its native 4x scale, with no final resize. The fast template uses the same
+768×1152 generation base, applies Remacri 4x, then bicubic-resizes to 1536×2304
+for a compact 2x final output. Remacri is required for these templates and stays
+under the existing unified model-root mount; do not add a single-file mount.
+Positive and negative prompt fields are empty for clients to populate. Node
+IDs `5`, `6`, `13`, `14`, and `15` retain their existing roles; node `15` now
+saves the upscaled image from node `17` (default) or the final resize at node `18`
+(fast). Node `23` is a
+`Lora Loader (LoraManager)` that passes its MODEL output to sampler `13` and
+its CLIP output to encoders `5` and `6`. Reference-image support is deferred.
+
+Fast retains the same generation detail and sampling cost as the default; its
+smaller final PNG reduces save and transfer work. Remacri still processes the
+same 4x intermediate image. Final PNG byte size depends on the image content;
+1536×2304 is not a hard 4 MB file-size guarantee.
+
+The LoRA stack lists eleven reviewed Krea 2 files, all with `active: false`.
+Without a runtime LoRA selection, no LoRA weights are loaded. Named inactive
+entries let the current AstrBot plugin discover the stack; an empty list is
+not recognized by that plugin. It can activate these entries, adjust strengths,
+or append selections discovered in its local inventory. Keep each `name` as a
+complete relative catalog key such as `ecosystems/krea2/Pantyhose.safetensors`;
+bare filenames may work on a direct worker but fail gateway validation.
+Only activate installed Krea 2-compatible LoRAs. A `.steps.json` sidecar in the
+plugin data directory can override the template's 12 steps and must be reviewed
+separately when installing these templates.
+
+Run the workflow contract checks without a container or GPU:
+
+```sh
+node --test tests/test_kr2_workflows.mjs
+```
+
 These categories are not required for the first base-model image:
 
 | Category | Add it when | Destination |
